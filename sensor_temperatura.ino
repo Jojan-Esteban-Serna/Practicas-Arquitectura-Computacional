@@ -10,7 +10,9 @@
 //
 //  0.2.0   use getHumidity() and getTemperature()
 //  0.1.2   add URL in header
-
+//Integrantes: 
+//Santiago Agredo Vallejo
+//Jojan esteban Serna Serna
 
 #include "DHTStable.h"
 #include <LiquidCrystal.h>

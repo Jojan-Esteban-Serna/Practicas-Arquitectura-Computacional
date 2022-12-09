@@ -29,7 +29,7 @@ void setup()
   Serial.print("LIBRARY VERSION: ");
   Serial.println(DHTSTABLE_LIB_VERSION);
   Serial.println();
-  Serial.println("Type,\tstatus,\tHumidity (%),\tTemperature (C)");
+  Serial.println("Type,\tstatus,\tHumidity (%),\tTemperature (C), \t color");
 }
 
 
@@ -80,7 +80,7 @@ void colortemp(){
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Led Azul Encendido");
-    
+
   }else{
     lcd.clear();
     lcd.setCursor(0,0);

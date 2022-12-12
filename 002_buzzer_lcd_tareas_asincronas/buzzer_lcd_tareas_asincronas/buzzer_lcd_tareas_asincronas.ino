@@ -118,7 +118,8 @@ const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 DHTStable DHT;
 
-void errors(int chk){
+void verificarErrores(int chk)
+{
     switch (chk)
     {
         case DHTLIB_OK:  
@@ -135,47 +136,38 @@ void errors(int chk){
         break;
     }
 }
-float humy, temp;
-AsyncTask asyncTask1(2000, true, []() { 
+float humedadLeida, temperaturaLeida;
+AsyncTask tskLeerTemperatura(2000, true, []() 
+{ 
   int chk = DHT.read11(DHT11_PIN);
-  errors(chk);
-  temp = DHT.getTemperature(); 
+  verificarErrores(chk);
+  temperaturaLeida = DHT.getTemperature(); 
   Serial.println("Temp: ");
-  Serial.println(temp);   
+  Serial.println(temperaturaLeida);   
 });
-AsyncTask asyncTask2(1000, true, []() {  
+AsyncTask tskLeerHumedad(1000, true, []() 
+{  
   int chk = DHT.read11(DHT11_PIN);
-  errors(chk);
-  humy = DHT.getHumidity();                                        
+  verificarErrores(chk);
+  humedadLeida = DHT.getHumidity();                                        
   Serial.println("Humd: ");
-  Serial.println(humy);  
+  Serial.println(humedadLeida);  
 });
 
-AsyncTask asyncTask3(4000, true, []() {
+AsyncTask tskActualizarDisplay(0, true, []() 
+{
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("HUMEDAD: ");
-    lcd.print(humy);
+    lcd.print("Humedad: ");
+    lcd.print(humedadLeida);
     lcd.setCursor(0,1);
-    lcd.print("TEMP: ");
-    lcd.print(temp);
+    lcd.print("Temp: ");
+    lcd.print(temperaturaLeida);
 });
 
-void setup()
+AsyncTask tskReproducirMelodia(4000,false, []()
 {
-    lcd.begin(16, 2);
-    Serial.begin(115200);
-    pinMode(BUZZER_PASIVO, OUTPUT);	// pin 51 como salida
-    pinMode(LED_GREEN, OUTPUT);
-    pinMode(LED_BLUE, OUTPUT);
-    pinMode(LED_RED, OUTPUT);
-    asyncTask1.Start();
-    asyncTask2.Start();
-    asyncTask3.Start();
-}
-void activarMelodia(){
-     Serial.println("*Suena musica de fondo*");
-     delay(1000);
+       Serial.println("*Suena musica de fondo*");
   
   /*
     for (int i = 0; i < 25; i++) 
@@ -187,19 +179,41 @@ void activarMelodia(){
         noTone(BUZZER_PASIVO);				// detiene reproduccion de tono
     }  */
 }
+);
+void setup()
+{
+    lcd.begin(16, 2);
+    Serial.begin(115200);
+    pinMode(BUZZER_PASIVO, OUTPUT);	// pin 51 como salida
+    pinMode(LED_GREEN, OUTPUT);
+    pinMode(LED_BLUE, OUTPUT);
+    pinMode(LED_RED, OUTPUT);
+    tskLeerTemperatura.Start();
+    tskLeerHumedad.Start();
+    tskActualizarDisplay.Start();
+}
+
 void loop()
 {
-    asyncTask1.Update();
-    asyncTask2.Update();
-    asyncTask3.Update();
-    if(temp > 29){
+    tskLeerTemperatura.Update();
+    tskLeerHumedad.Update();
+    tskActualizarDisplay.Update();
+    tskReproducirMelodia.Update();
+
+    if(temperaturaLeida > 29)
+    {
         digitalWrite(LED_RED, HIGH);  
-        activarMelodia();
-    }else if(temp < 26){
+        tskReproducirMelodia.Start();
+    }
+    else if(temperaturaLeida < 26)
+    {
         digitalWrite(LED_BLUE, HIGH); 
-        activarMelodia();
-    }else if(temp > 26 && temp <29){
-        digitalWrite(LED_GREEN, HIGH);  
+        tskReproducirMelodia.Start();
+    }
+    else if(temperaturaLeida > 26 && temperaturaLeida <29)
+    {
+        digitalWrite(LED_GREEN, HIGH); 
+        tskReproducirMelodia.Stop();
     } 
     digitalWrite(LED_RED, LOW); 
     digitalWrite(LED_BLUE, LOW); 

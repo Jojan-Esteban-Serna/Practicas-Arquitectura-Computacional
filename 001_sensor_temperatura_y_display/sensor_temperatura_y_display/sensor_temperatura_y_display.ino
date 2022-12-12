@@ -6,10 +6,14 @@
 #include <LiquidCrystal.h>
 
 DHTStable DHT;
+#define RED_LED 42
+#define GREEN_LED 40
+#define BLUE_LED 38
 
 #define DHT11_PIN 22
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
 void setup()
 {
    lcd.begin(16, 2);
@@ -25,6 +29,10 @@ void setup()
 
 void loop()
 {
+  digitalWrite(RED_LED, LOW);
+    digitalWrite(GREEN_LED, LOW);
+  digitalWrite(BLUE_LED, HIGH);
+
   // READ DATA
   Serial.print("DHT11, \t");
   int chk = DHT.read11(DHT11_PIN);

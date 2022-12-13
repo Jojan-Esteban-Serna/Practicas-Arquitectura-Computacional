@@ -156,7 +156,8 @@ void hacerSonarBuzzer() {
 char contrasenia_leida[8];
 signed char conteoCaracteres = 0;
 char contrasenia[] = "12345";
-signed char intentos = 3 void loop() {
+signed char intentos = 3;
+ void loop() {
   // put your main code here, to run repeatedly:
   customKeypad.tick();
   if (customKeypad.available() && conteoCaracteres < 8) {

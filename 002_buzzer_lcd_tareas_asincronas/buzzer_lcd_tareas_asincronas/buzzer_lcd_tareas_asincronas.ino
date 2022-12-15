@@ -8,6 +8,11 @@ Integrantes:
   - Santiago Agredo vallejo
   - Fredy Junior Ortega Garcia
   - Jojan Esteban Serna Serna
+*//*
+  Integrantes:
+  - Santiago Agredo vallejo
+  - Fredy Junior Ortega Garcia
+  - Jojan Esteban Serna Serna
 */
 #include <LiquidCrystal.h>
 #include "DHTStable.h"
@@ -128,8 +133,8 @@ void loop()
     100,    // Frequency in hertz(HZ).
     500 // Duration of the beep in milliseconds(ms).
     );*/
-//hot 15
-//mild 10
+  //hot 15
+  //mild 10
   if (temperaturaLeida > HOT_TEMP)
   {
     color(255, 0, 0);

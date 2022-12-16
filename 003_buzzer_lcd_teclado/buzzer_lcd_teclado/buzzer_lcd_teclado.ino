@@ -23,7 +23,7 @@ char keys[ROWS][COLS] = {
   { '7', '8', '9', 'C' },
   { '*', '0', '#', 'D' }
 };
-byte rowPins[ROWS] = { 5, 4, 3, 2 };    //connect to the row pinouts of the keypad
+byte rowPins[ROWS] = { 5, 4, 3, 2 };     //connect to the row pinouts of the keypad
 byte colPins[COLS] = { 11, 10, 9, 13 };  //connect to the column pinouts of the keypad
 
 //initialize an instance of class NewKeypad
@@ -42,22 +42,22 @@ bool flgQuedanIntentos = true;
 bool flgPuedeLeer = true;
 bool flgPasswordcorrecto = false;
 bool flgPasswordIngresado = false;
+bool flgFirstCharacter = true;
+
 char contrasenia_leida[9];
 signed char conteoCaracteres = 0;
 char contrasenia[] = "12345";
 signed char intentos = 0;
-
-void color (unsigned char red, unsigned char green, unsigned char blue) // the color generating function
+long elapsedtime = 0;
+void color(unsigned char red, unsigned char green, unsigned char blue)  // the color generating function
 {
   analogWrite(LED_RED, red);
   analogWrite(LED_BLUE, blue);
   analogWrite(LED_GREEN, green);
 }
 
-AsyncTask tskAwaitFiveSeconds(300, true, []()
-{
-  if (flgEsperar)
-  {
+AsyncTask tskAwaitFiveSeconds(300, true, []() {
+  if (flgEsperar) {
     for (int i = 5; i > 0; i--) {
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -79,11 +79,28 @@ AsyncTask tskAwaitFiveSeconds(300, true, []()
   }
 });
 
+AsyncTask tskAwaitTenSeconds(10000, false, []() {
+  verificarContrasenia();
+  flgFirstCharacter = true;
+  flgPasswordIngresado = true;
+});
 
-
-
-AsyncTask tskLeerPassword(100, true, []()
-{
+void verificarContrasenia() {
+  if (strcmp(contrasenia, contrasenia_leida) == 0) {
+    Serial.println("Contraseña correcta");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Correcto");
+    flgPasswordcorrecto = true;
+  } else {
+    Serial.println("Contraseña incorrecta");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Incorrecto");
+    flgPasswordcorrecto = false;
+  }
+}
+AsyncTask tskLeerPassword(100, true, []() {
   if (flgPuedeLeer && flgQuedanIntentos) {
 
     if (customKeypad.available() && conteoCaracteres <= 8) {
@@ -92,42 +109,38 @@ AsyncTask tskLeerPassword(100, true, []()
       Serial.println(caracterLeido);
       if (caracterLeido == '*' && e.bit.EVENT == KEY_JUST_PRESSED || conteoCaracteres == 8) {
         contrasenia_leida[conteoCaracteres] = '\0';
-        if (strcmp(contrasenia, contrasenia_leida) == 0) {
-          Serial.println("Contraseña correcta");
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Correcto");
-          flgPasswordcorrecto = true;
-        } else {
-          Serial.println("Contraseña incorrecta");
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Incorrecto");
-          flgPasswordcorrecto = false;
-        }
+        verificarContrasenia();
+        tskAwaitTenSeconds.Stop();
+
         flgPasswordIngresado = true;
       }
 
       if (e.bit.EVENT == KEY_JUST_PRESSED && caracterLeido != '*') {
+        if (flgFirstCharacter) {
+          tskAwaitTenSeconds.Start();
+          flgFirstCharacter = false;
+        }
+        tskAwaitTenSeconds.Reset();
         contrasenia_leida[conteoCaracteres++] = caracterLeido;
         Serial.print("Contraseña leida: ");
         Serial.println(contrasenia_leida);
+        char tempBuffer[9] = "";
+        memset(tempBuffer, '*', conteoCaracteres);
         lcd.clear();
         lcd.setCursor(0, 0);
-        lcd.print(contrasenia_leida);
+        lcd.print(tempBuffer);
       }
 
       //Serial.println(conteoCaracteres);
 
-      if (e.bit.EVENT == KEY_JUST_PRESSED) Serial.println(" pressed");
-      else if (e.bit.EVENT == KEY_JUST_RELEASED) Serial.println(" released");
+      if (e.bit.EVENT == KEY_JUST_PRESSED) {
+        Serial.println(" pressed");
+      } else if (e.bit.EVENT == KEY_JUST_RELEASED) Serial.println(" released");
     }
   }
-
 });
 
-AsyncTask tskDecisionPassword(200, true, []()
-{
+AsyncTask tskDecisionPassword(200, true, []() {
   if (flgPasswordIngresado && !flgEsperar) {
     strcpy(contrasenia_leida, "        \0");
     conteoCaracteres = 0;
@@ -153,9 +166,8 @@ AsyncTask tskDecisionPassword(200, true, []()
       );
     }
   }
-
-
 });
+
 
 
 
@@ -170,17 +182,16 @@ void setup() {
   pinMode(LED_RED, OUTPUT);
   EasyBuzzer.setPin(BUZZER_PASIVO);
   tskLeerPassword.Start();
+
   tskDecisionPassword.Start();
   tskAwaitFiveSeconds.Start();
-
 }
-
 void loop() {
   // put your main code here, to run repeatedly:
   customKeypad.tick();
   tskLeerPassword.Update();
+  tskAwaitTenSeconds.Update();
   tskDecisionPassword.Update();
   tskAwaitFiveSeconds.Update();
   EasyBuzzer.update();
-
 }

@@ -84,8 +84,8 @@ AsyncTask tskAwaitTenSeconds(10000, false, []() {
   flgFirstCharacter = true;
   flgPasswordIngresado = true;
   lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("time out: try again");
+  lcd.setCursor(0, 0);
+  lcd.print("time out: try again");
 });
 
 void verificarContrasenia() {
@@ -114,6 +114,7 @@ AsyncTask tskLeerPassword(100, true, []() {
         contrasenia_leida[conteoCaracteres] = '\0';
         verificarContrasenia();
         tskAwaitTenSeconds.Stop();
+        flgFirstCharacter = true;
 
         flgPasswordIngresado = true;
       }

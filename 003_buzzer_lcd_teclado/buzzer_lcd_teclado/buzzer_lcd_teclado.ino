@@ -83,6 +83,9 @@ AsyncTask tskAwaitTenSeconds(10000, false, []() {
   verificarContrasenia();
   flgFirstCharacter = true;
   flgPasswordIngresado = true;
+  lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("time out: try again");
 });
 
 void verificarContrasenia() {

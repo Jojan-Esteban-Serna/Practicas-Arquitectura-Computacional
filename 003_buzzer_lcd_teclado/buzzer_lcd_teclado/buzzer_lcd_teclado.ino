@@ -80,9 +80,10 @@ AsyncTask tskAwaitFiveSeconds(300, true, []() {
 });
 
 AsyncTask tskAwaitTenSeconds(10000, false, []() {
-  verificarContrasenia();
+  //verificarContrasenia();
   flgFirstCharacter = true;
   flgPasswordIngresado = true;
+  flgPasswordcorrecto = false;
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("time out: try again");

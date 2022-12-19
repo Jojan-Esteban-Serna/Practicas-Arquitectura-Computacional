@@ -60,6 +60,11 @@ void loop() {
       menu.next_screen();
     }else if(key == 'A'){
       menu.previous_screen();
+    }else if(key == 'B'){
+      menu.set_focusedLine(0);
+    }else if(key == 'C'){
+            menu.set_focusedLine(1);
+
     }
   
 }

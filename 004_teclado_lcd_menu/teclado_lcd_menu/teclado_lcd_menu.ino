@@ -13,9 +13,11 @@
 #define LED_BLUE 45
 
 #define TEST_TEMP 15
+#define MAX_TEMP 125
+#define MAX_LIGTH 1200
 // Pin mapping for the display
 const int rs = 7, en = 8, d4 = 22, d5 = 24, d6 = 26, d7 = 28;
-byte umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = 0, umbrLuzLow = 0;
+int umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = 0, umbrLuzLow = 0;
 //Prototipos funciones
 
 
@@ -31,7 +33,7 @@ void color(unsigned char red, unsigned char green, unsigned char blue);
 //10K potentiometer wiper to VO
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 #pragma region Screens
-char messages[5][16] = { {"1.UmbTempHigh"}, {"2.UmbTempLow"}, {"3.UmbLuzHigh"}, {"4.UmbLuzLow"}, {"5.Reset"} };
+char *messages[5] = { "1.UmbTempHigh", "2.UmbTempLow", "3.UmbLuzHigh", "4.UmbLuzLow", "5.Reset" };
 LiquidScreen *lastScreen = nullptr;
 
 LiquidLine screen_1_line_1(0, 0, messages[0]);
@@ -85,14 +87,13 @@ int readNumber() {
     char key = keypad.getKey();
     if (key) {
 
-      if (key >= '0' && key <= '9') {     // only act on numeric keys
-        strNumber += key;// append new character to input string
+      if (key >= '0' && key <= '9') {  // only act on numeric keys
+        strNumber += key;              // append new character to input string
         lcd.print(key);
 
       } else if (key == '*' || key > 'A' && key < 'Z') {
-        break;              // clear input
+        break;  // clear input
       }
-
     }
   }
 
@@ -104,7 +105,7 @@ void color(unsigned char red, unsigned char green, unsigned char blue)  // the c
   analogWrite(LED_BLUE, blue);
   analogWrite(LED_GREEN, green);
 }
-void editar_valor(String titulo, byte *varimp) {
+void editar_valor(String titulo, int *varimp) {
   menu.change_screen(&screen_5);
   lcd.setCursor(0, 0);
   lcd.print("                ");
@@ -112,7 +113,7 @@ void editar_valor(String titulo, byte *varimp) {
   lcd.print(titulo);
   lcd.setCursor(0, 1);
   lcd.print(*varimp);
-  lcd.print(" \"*\" to edit ");
+  lcd.print(" edit=Any key");
   char pressedKey;
   while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#') {
   }
@@ -120,10 +121,30 @@ void editar_valor(String titulo, byte *varimp) {
     menu.change_screen(lastScreen);
     return;
   }
-  *varimp = readNumber();
-  menu.change_screen(lastScreen);
+  int number = readNumber();
+  if (varimp == &umbrTempLow && number < umbrTempHigh || varimp == &umbrTempHigh && number > umbrTempLow && number <= MAX_TEMP) {
+    *varimp = number;
+    menu.change_screen(lastScreen);
+    return;
+  }
 
+  if (varimp == &umbrLuzLow && number < umbrLuzHigh || varimp == &umbrLuzHigh && number > umbrLuzLow && number <= MAX_LIGTH) {
+    *varimp = number;
+    menu.change_screen(lastScreen);
+    return;
+  }
+  lcd.setCursor(0, 1);
+  lcd.print("                ");
+  lcd.setCursor(0, 1);
+  lcd.print("Error press \"*\"");
+  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY) {
+  }
+
+
+
+  menu.change_screen(lastScreen);
 }
+
 void setup() {
   Serial.begin(9600);
   lcd.begin(16, 2);
@@ -180,7 +201,6 @@ void setup() {
     umbrTempHigh = DEFAULT_TEMPHIGH;
     umbrTempLow = DEFAULT_TEMPLOW;
     menu.change_screen(lastScreen);
-
   });
   menu.update();
 }
@@ -194,20 +214,17 @@ void loop() {
     if (menu.get_currentScreen() != &screen_1) {
 
       menu.previous_screen();
-
     }
   } else if (key == 'D') {
 
     if (menu.get_currentScreen() != &screen_4) {
       menu.next_screen();
-
     }
 
   } else if (key == '#') {
     menu.switch_focus();
 
-  }
-  else if (key == '*') {
+  } else if (key == '*') {
     lastScreen = menu.get_currentScreen();
     menu.call_function(1);
     //lcd.print(readNumber());
@@ -225,5 +242,4 @@ void loop() {
     color(0, 255, 0);
     EasyBuzzer.stopBeep();
   }
-
 }

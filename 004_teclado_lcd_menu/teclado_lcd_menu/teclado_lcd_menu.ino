@@ -17,31 +17,12 @@
 const int rs = 7, en = 8, d4 = 22, d5 = 24, d6 = 26, d7 = 28;
 byte umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = 0, umbrLuzLow = 0;
 //Prototipos funciones
-void setUmbrTempHigh(byte newUmbrTempHigh);
-void setUmbrTempLow(byte newUmbrTempLow);
 
-void setUmbrLuzHigh(byte newUmbLuzHigh);
-void setUmbrLuzLow(byte newUmbrLuzow);
 
 int readNumber();
 void editar_valor(String titulo, byte *varimp);
 void color(unsigned char red, unsigned char green, unsigned char blue);
-#pragma region Setters
 
-void setUmbrTempHigh(byte newUmbrTempHigh) {
-  umbrTempHigh = newUmbrTempHigh;
-}
-void setUmbrTempLow(byte newUmbrTempLow) {
-  umbrTempLow = newUmbrTempLow;
-}
-
-void setUmbrLuzHigh(byte newUmbLuzHigh) {
-  umbrLuzHigh = newUmbLuzHigh;
-}
-void setUmbrLuzLow(byte newUmbrLuzow) {
-  umbrLuzLow = newUmbrLuzow;
-}
-#pragma endregion
 
 
 

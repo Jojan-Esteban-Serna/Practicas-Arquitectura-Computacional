@@ -14,10 +14,10 @@
 
 #define TEST_TEMP 15
 #define MAX_TEMP 125
-#define MAX_LIGTH 1200
+#define MAX_LIGTH 1023
 // Pin mapping for the display
 const int rs = 7, en = 8, d4 = 22, d5 = 24, d6 = 26, d7 = 28;
-int umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = 0, umbrLuzLow = 0;
+int umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = 800, umbrLuzLow = 300;
 //Prototipos funciones
 
 
@@ -86,13 +86,13 @@ int readNumber() {
   while (true) {
     char key = keypad.getKey();
     if (key) {
-
-      if (key >= '0' && key <= '9') {  // only act on numeric keys
-        strNumber += key;              // append new character to input string
-        lcd.print(key);
-
-      } else if (key == '*' || key > 'A' && key < 'Z') {
+      if (key == '*') {
         break;  // clear input
+      } else if (key > 'A' && key < 'Z') {
+        continue;
+      } else if (key >= '0' && key <= '9') {  // only act on numeric keys
+        strNumber += key;                     // append new character to input string
+        lcd.print(key);
       }
     }
   }

@@ -90,9 +90,9 @@ int readNumber() {
     if (key) {
       if (key == '*') {
         break;  // clear input
-      } else if (key > 'A' && key < 'Z') {
+      } else if (isAlpha(key)) {
         continue;
-      } else if (key >= '0' && key <= '9') {  // only act on numeric keys
+      } else if (isDigit(key)) {  // only act on numeric keys
         strNumber += key;                     // append new character to input string
         lcd.print(key);
       }

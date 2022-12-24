@@ -33,8 +33,8 @@ bool isInLightRange(int number, int *varimp);
 //10K potentiometer wiper to VO
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 #pragma region Screens
-//char *messages[5] = { "1.UmbTempHigh", "2.UmbTempLow", "3.UmbLuzHigh", "4.UmbLuzLow", "5.Reset" };
-char messages[5][16] = { {"1.UmbTempHigh"}, {"2.UmbTempLow"}, {"3.UmbLuzHigh"}, {"4.UmbLuzLow"}, {"5.Reset"} };
+char *messages[5] = { "1.UmbTempHigh", "2.UmbTempLow", "3.UmbLuzHigh", "4.UmbLuzLow", "5.Reset" };
+//char messages[5][16] = { {"1.UmbTempHigh"}, {"2.UmbTempLow"}, {"3.UmbLuzHigh"}, {"4.UmbLuzLow"}, {"5.Reset"} };
 
 LiquidScreen *lastScreen = nullptr;
 

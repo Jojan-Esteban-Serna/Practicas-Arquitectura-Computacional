@@ -24,8 +24,8 @@ int umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh 
 int readNumber();
 void editar_valor(String titulo, byte *varimp);
 void color(unsigned char red, unsigned char green, unsigned char blue);
-
-
+bool isInTempRange(int number, int *varimp);
+bool isInLightRange(int number, int *varimp);
 
 
 
@@ -33,7 +33,9 @@ void color(unsigned char red, unsigned char green, unsigned char blue);
 //10K potentiometer wiper to VO
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 #pragma region Screens
-char *messages[5] = { "1.UmbTempHigh", "2.UmbTempLow", "3.UmbLuzHigh", "4.UmbLuzLow", "5.Reset" };
+//char *messages[5] = { "1.UmbTempHigh", "2.UmbTempLow", "3.UmbLuzHigh", "4.UmbLuzLow", "5.Reset" };
+char messages[5][16] = { {"1.UmbTempHigh"}, {"2.UmbTempLow"}, {"3.UmbLuzHigh"}, {"4.UmbLuzLow"}, {"5.Reset"} };
+
 LiquidScreen *lastScreen = nullptr;
 
 LiquidLine screen_1_line_1(0, 0, messages[0]);
@@ -105,7 +107,15 @@ void color(unsigned char red, unsigned char green, unsigned char blue)  // the c
   analogWrite(LED_BLUE, blue);
   analogWrite(LED_GREEN, green);
 }
-void editar_valor(String titulo, int *varimp) {
+
+bool isInTempRange(int number, int *varimp) {
+  return ((varimp == &umbrTempLow && number < umbrTempHigh || varimp == &umbrTempHigh && number > umbrTempLow) && number <= MAX_TEMP);
+}
+
+bool isInLightRange(int number, int *varimp) {
+  return ((varimp == &umbrLuzLow && number < umbrLuzHigh || varimp == &umbrLuzHigh && number > umbrLuzLow) && number <= MAX_LIGTH);
+}
+void editar_valor(String titulo, int *varimp, bool (*isInRangeFunction)(int, int*)) {
   menu.change_screen(&screen_5);
   lcd.setCursor(0, 0);
   lcd.print("                ");
@@ -113,38 +123,44 @@ void editar_valor(String titulo, int *varimp) {
   lcd.print(titulo);
   lcd.setCursor(0, 1);
   lcd.print(*varimp);
-  lcd.print(" edit=Any key");
+  lcd.print(" \"*\" to edit");
   char pressedKey;
-  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#') {
+  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#' || isAlphaNumeric(pressedKey)) {
   }
   if (pressedKey == '#') {
     menu.change_screen(lastScreen);
     return;
   }
   int number = readNumber();
-  if (varimp == &umbrTempLow && number < umbrTempHigh || varimp == &umbrTempHigh && number > umbrTempLow && number <= MAX_TEMP) {
+  if (isInRangeFunction(number, varimp)) {
     *varimp = number;
     menu.change_screen(lastScreen);
     return;
   }
 
-  if (varimp == &umbrLuzLow && number < umbrLuzHigh || varimp == &umbrLuzHigh && number > umbrLuzLow && number <= MAX_LIGTH) {
-    *varimp = number;
-    menu.change_screen(lastScreen);
-    return;
-  }
   lcd.setCursor(0, 1);
   lcd.print("                ");
   lcd.setCursor(0, 1);
   lcd.print("Error press \"*\"");
-  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY) {
+  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY || pressedKey == '#' || isAlphaNumeric(pressedKey)) {
   }
-
-
 
   menu.change_screen(lastScreen);
 }
+auto umbTempHighFunc = []() {
+  editar_valor("UmbTempHigh", &umbrTempHigh, isInTempRange);
+};
 
+auto umbTempLowFunc = []() {
+  editar_valor("UmbTempLow", &umbrTempLow, isInTempRange);
+};
+
+auto umbLuzHighFunc = []() {
+  editar_valor("UmbLuzHigh", &umbrLuzHigh, isInLightRange);
+};
+auto umbLuzLowFunc = []() {
+  editar_valor("UmbLuzLow", &umbrLuzLow, isInLightRange);
+};
 void setup() {
   Serial.begin(9600);
   lcd.begin(16, 2);
@@ -157,30 +173,16 @@ void setup() {
   EasyBuzzer.setPin(BUZZER_PASIVO);
 
   //screen_2_line_1.attach_function(1,)
-  screen_1_line_1.attach_function(1, []() {
-    editar_valor("UmbTempHigh", &umbrTempHigh);
-  });
-  screen_1_line_2.attach_function(1, []() {
-    editar_valor("UmbTempLow", &umbrTempLow);
-  });
+  screen_1_line_1.attach_function(1, umbTempHighFunc);
+  screen_1_line_2.attach_function(1, umbTempLowFunc);
 
-  screen_2_line_1.attach_function(1, []() {
-    editar_valor("UmbTempLow", &umbrTempLow);
-  });
-  screen_2_line_2.attach_function(1, []() {
-    editar_valor("UmbLuzHigh", &umbrLuzHigh);
-  });
+  screen_2_line_1.attach_function(1, umbTempLowFunc);
+  screen_2_line_2.attach_function(1, umbLuzHighFunc);
 
-  screen_3_line_1.attach_function(1, []() {
-    editar_valor("UmbLuzHigh", &umbrLuzHigh);
-  });
-  screen_3_line_2.attach_function(1, []() {
-    editar_valor("UmbLuzLow", &umbrLuzLow);
-  });
+  screen_3_line_1.attach_function(1, umbLuzHighFunc);
+  screen_3_line_2.attach_function(1, umbLuzLowFunc);
 
-  screen_4_line_1.attach_function(1, []() {
-    editar_valor("UmbLuzLow", &umbrLuzLow);
-  });
+  screen_4_line_1.attach_function(1, umbLuzLowFunc);
   screen_4_line_2.attach_function(1, []() {
     menu.change_screen(&screen_5);
 
@@ -192,7 +194,7 @@ void setup() {
     lcd.setCursor(0, 1);
     lcd.print("\"#\" to cancel  ");
     char pressedKey;
-    while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#') {
+    while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#' || isAlphaNumeric(pressedKey)) {
     }
     if (pressedKey == '#') {
       menu.change_screen(lastScreen);

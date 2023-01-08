@@ -1,15 +1,3 @@
-//
-//    FILE: dht11_test.ino
-//  AUTHOR: Rob Tillaart
-// VERSION: 1.0.0
-// PURPOSE: DHT library test sketch for DHT11 && Arduino
-//     URL: https://github.com/RobTillaart/DHTstable
-//
-//  HISTORY:
-//  1.0.0   2021-05-26  class name changed to DHTStable  (breaking change)
-//
-//  0.2.0   use getHumidity() and getTemperature()
-//  0.1.2   add URL in header
 //Integrantes: 
 //Santiago Agredo Vallejo
 //Jojan esteban Serna Serna
@@ -18,10 +6,14 @@
 #include <LiquidCrystal.h>
 
 DHTStable DHT;
+#define RED_LED 42
+#define GREEN_LED 40
+#define BLUE_LED 38
 
 #define DHT11_PIN 22
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
 void setup()
 {
    lcd.begin(16, 2);
@@ -31,12 +23,16 @@ void setup()
   Serial.print("LIBRARY VERSION: ");
   Serial.println(DHTSTABLE_LIB_VERSION);
   Serial.println();
-  Serial.println("Type,\tstatus,\tHumidity (%),\tTemperature (C), \t color");
+  Serial.println("Type,\tstatus,\tHumidity (%),\tTemperature (C), \t Led");
 }
 
 
 void loop()
 {
+  digitalWrite(RED_LED, LOW);
+    digitalWrite(GREEN_LED, LOW);
+  digitalWrite(BLUE_LED, HIGH);
+
   // READ DATA
   Serial.print("DHT11, \t");
   int chk = DHT.read11(DHT11_PIN);
@@ -55,7 +51,7 @@ void loop()
       Serial.print("Unknown error,\t"); 
       break;
   }
-  // DISPLAY DATA
+  // Mostrar datos en la 
   lcd.print("Humedad: ");
   lcd.print(DHT.getHumidity());
   lcd.setCursor(0, 1);
@@ -64,9 +60,9 @@ void loop()
   
   Serial.print(DHT.getHumidity(), 1);
   Serial.print(",\t");
-  Serial.println(DHT.getTemperature(), 1);
-  delay(2000);
-  lcd.clear();
+  Serial.print(DHT.getTemperature(), 1);
+  Serial.print(",\t");
+
   colortemp();
   delay(1000);
   lcd.clear();
@@ -74,21 +70,13 @@ void loop()
 
 void colortemp(){
   if(DHT.getTemperature() > 29){
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Led Rojo Encendido");
+    Serial.println("RED");
     
   }else if(DHT.getTemperature() < 26){
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Led Azul Encendido");
+    Serial.println("BLUE");
 
   }else{
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Led verde Encendido");    
+    Serial.println("GREEN");    
 
   }
 }
-
-// -- END OF FILE --

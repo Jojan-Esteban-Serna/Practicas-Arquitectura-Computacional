@@ -34,11 +34,11 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
 #pragma region configuracion_lcd
-const int rs = 7, en = 8, d4 = 22, d5 = 24, d6 = 26, d7 = 28;
 
 #if defined(LiquidCrystal_I2C_h)
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 #elif defined(LiquidCrystal_h)
+const int rs = 7, en = 8, d4 = 22, d5 = 24, d6 = 26, d7 = 28;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 #endif
 //

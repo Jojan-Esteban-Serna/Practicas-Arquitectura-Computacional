@@ -4,6 +4,8 @@
 #include <EasyBuzzer.h>
 #define DEFAULT_TEMPHIGH 29
 #define DEFAULT_TEMPLOW 26
+#define DEFAULT_LUZHIGH 800
+#define DEFAULT_LUZLOW 300
 #define PULSADOR 2        // pulsador en pin 2
 #define BUZZER_PASIVO 12  // buzzer pasivo en pin 12
 
@@ -23,7 +25,14 @@
 #define PIN_D7 28
 // Pin mapping for the display
 // const int rs = 7, en = 8, d4 = 22, d5 = 24, d6 = 26, d7 = 28;
-int umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = 800, umbrLuzLow = 300;
+typedef struct Umbrales {
+  int umbrTempHigh;
+  int umbrTempLow;
+  int umbrLuzHigh;
+  int umbrLuzLow;
+} Umbrales;
+Umbrales umbralConfig = Umbrales{ DEFAULT_TEMPHIGH, DEFAULT_TEMPLOW, DEFAULT_LUZHIGH, DEFAULT_LUZLOW };
+int umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = DEFAULT_LUZHIGH, umbrLuzLow = DEFAULT_LUZLOW;
 // Prototipos funciones
 
 int readNumber();
@@ -115,11 +124,11 @@ void color(unsigned char red, unsigned char green, unsigned char blue)  // the c
 }
 
 bool isInTempRange(int number, int *varimp) {
-  return ((varimp == &umbrTempLow && number < umbrTempHigh || varimp == &umbrTempHigh && number > umbrTempLow) && number <= MAX_TEMP);
+  return ((varimp == &umbralConfig.umbrTempLow && number < umbralConfig.umbrTempHigh || varimp == &umbralConfig.umbrTempHigh && number > umbralConfig.umbrTempLow) && number <= MAX_TEMP);
 }
 
 bool isInLightRange(int number, int *varimp) {
-  return ((varimp == &umbrLuzLow && number < umbrLuzHigh || varimp == &umbrLuzHigh && number > umbrLuzLow) && number <= MAX_LIGTH);
+  return ((varimp == &umbralConfig.umbrLuzLow && number < umbralConfig.umbrLuzHigh || varimp == &umbralConfig.umbrLuzHigh && number >umbralConfig.umbrLuzLow) && number <= MAX_LIGTH);
 }
 void editar_valor(String titulo, int *varimp, bool (*isInRangeFunction)(int, int *)) {
   menu.change_screen(&screen_5);
@@ -154,18 +163,18 @@ void editar_valor(String titulo, int *varimp, bool (*isInRangeFunction)(int, int
   menu.change_screen(lastScreen);
 }
 void umbTempHighFunc() {
-  editar_valor("UmbTempHigh", &umbrTempHigh, isInTempRange);
+  editar_valor("UmbTempHigh", &umbralConfig.umbrTempHigh, isInTempRange);
 };
 
 void umbTempLowFunc() {
-  editar_valor("UmbTempLow", &umbrTempLow, isInTempRange);
+  editar_valor("UmbTempLow", &umbralConfig.umbrTempLow, isInTempRange);
 };
 
 void umbLuzHighFunc() {
-  editar_valor("UmbLuzHigh", &umbrLuzHigh, isInLightRange);
+  editar_valor("UmbLuzHigh", &umbralConfig.umbrLuzHigh, isInLightRange);
 };
 void umbLuzLowFunc() {
-  editar_valor("UmbLuzLow", &umbrLuzLow, isInLightRange);
+  editar_valor("UmbLuzLow", &umbralConfig.umbrLuzLow, isInLightRange);
 };
 void setup() {
   Serial.begin(9600);
@@ -206,8 +215,8 @@ void setup() {
       menu.change_screen(lastScreen);
       return;
     }
-    umbrTempHigh = DEFAULT_TEMPHIGH;
-    umbrTempLow = DEFAULT_TEMPLOW;
+    umbralConfig.umbrTempHigh = DEFAULT_TEMPHIGH;
+    umbralConfig.umbrTempLow = DEFAULT_TEMPLOW;
     menu.change_screen(lastScreen);
   });
   menu.update();
@@ -235,13 +244,13 @@ void loop() {
     menu.call_function(1);
     // lcd.print(readNumber());
   }
-  if (TEST_TEMP > umbrTempHigh) {
+  if (TEST_TEMP > umbralConfig.umbrTempHigh) {
     color(255, 0, 0);
     EasyBuzzer.singleBeep(
       300,  // Frequency in hertz(HZ).
       500   // Duration of the beep in milliseconds(ms).
     );
-  } else if (TEST_TEMP < umbrTempLow) {
+  } else if (TEST_TEMP < umbralConfig.umbrTempLow) {
     color(0, 0, 255);
     EasyBuzzer.stopBeep();
   } else {

@@ -2,6 +2,7 @@
 #include <LiquidMenu.h>
 #include <Keypad.h>
 #include <EasyBuzzer.h>
+#include <EEPROM.h>
 #define DEFAULT_TEMPHIGH 29
 #define DEFAULT_TEMPLOW 26
 #define DEFAULT_LUZHIGH 800
@@ -26,13 +27,18 @@
 // Pin mapping for the display
 // const int rs = 7, en = 8, d4 = 22, d5 = 24, d6 = 26, d7 = 28;
 typedef struct Umbrales {
+  int checkKey;
   int umbrTempHigh;
   int umbrTempLow;
   int umbrLuzHigh;
   int umbrLuzLow;
 } Umbrales;
-Umbrales umbralConfig = Umbrales{ DEFAULT_TEMPHIGH, DEFAULT_TEMPLOW, DEFAULT_LUZHIGH, DEFAULT_LUZLOW };
-int umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = DEFAULT_LUZHIGH, umbrLuzLow = DEFAULT_LUZLOW;
+
+Umbrales umbralConfig = Umbrales{ 192837465, DEFAULT_TEMPHIGH, DEFAULT_TEMPLOW, DEFAULT_LUZHIGH, DEFAULT_LUZLOW };
+Umbrales umbralBaseConfig = Umbrales{ 192837465, DEFAULT_TEMPHIGH, DEFAULT_TEMPLOW, DEFAULT_LUZHIGH, DEFAULT_LUZLOW };
+
+//int umbrTempHigh = DEFAULT_TEMPHIGH, umbrTempLow = DEFAULT_TEMPLOW, umbrLuzHigh = DEFAULT_LUZHIGH, umbrLuzLow = DEFAULT_LUZLOW;
+int eepromBaseAddres = 0;
 // Prototipos funciones
 
 int readNumber();
@@ -128,7 +134,7 @@ bool isInTempRange(int number, int *varimp) {
 }
 
 bool isInLightRange(int number, int *varimp) {
-  return ((varimp == &umbralConfig.umbrLuzLow && number < umbralConfig.umbrLuzHigh || varimp == &umbralConfig.umbrLuzHigh && number >umbralConfig.umbrLuzLow) && number <= MAX_LIGTH);
+  return ((varimp == &umbralConfig.umbrLuzLow && number < umbralConfig.umbrLuzHigh || varimp == &umbralConfig.umbrLuzHigh && number > umbralConfig.umbrLuzLow) && number <= MAX_LIGTH);
 }
 void editar_valor(String titulo, int *varimp, bool (*isInRangeFunction)(int, int *)) {
   menu.change_screen(&screen_5);
@@ -149,6 +155,7 @@ void editar_valor(String titulo, int *varimp, bool (*isInRangeFunction)(int, int
   int number = readNumber();
   if (isInRangeFunction(number, varimp)) {
     *varimp = number;
+    EEPROM.put(eepromBaseAddres, umbralConfig);
     menu.change_screen(lastScreen);
     return;
   }
@@ -177,6 +184,11 @@ void umbLuzLowFunc() {
   editar_valor("UmbLuzLow", &umbralConfig.umbrLuzLow, isInLightRange);
 };
 void setup() {
+  EEPROM.get(eepromBaseAddres, umbralConfig);
+  if (umbralConfig.checkKey != umbralBaseConfig.checkKey) {
+    umbralConfig = umbralBaseConfig;
+    EEPROM.put(eepromBaseAddres, umbralConfig);
+  }
   Serial.begin(9600);
   lcd.begin(16, 2);
   menu.add_screen(screen_5);

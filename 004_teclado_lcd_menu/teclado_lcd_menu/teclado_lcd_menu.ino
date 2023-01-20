@@ -284,4 +284,5 @@ void loop() {
     color(0, 255, 0);
     EasyBuzzer.stopBeep();
   }
+  menu.update();
 }

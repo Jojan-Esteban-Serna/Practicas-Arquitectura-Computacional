@@ -55,7 +55,7 @@ void umbLuzLowFunc();
 LiquidCrystal lcd(PIN_RS, PIN_EN, PIN_D4, PIN_D5, PIN_D6, PIN_D7);
 #pragma region Screens
 char *messages[5] = { "1.UmbTempHigh", "2.UmbTempLow", "3.UmbLuzHigh", "4.UmbLuzLow", "5.Reset" };
-// char messages[5][16] = { {"1.UmbTempHigh"}, {"2.UmbTempLow"}, {"3.UmbLuzHigh"}, {"4.UmbLuzLow"}, {"5.Reset"} };
+//char messages[5][16] = { {"1.UmbTempHigh"}, {"2.UmbTempLow"}, {"3.UmbLuzHigh"}, {"4.UmbLuzLow"}, {"5.Reset"} };
 
 LiquidScreen *lastScreen = nullptr;
 
@@ -106,9 +106,13 @@ int readNumber() {
 
   String strNumber = "";
   char readedChar;
-  while (true) {
+  int checkPointTime = millis();
+  int elapsedTime = millis() - checkPointTime;
+  while (elapsedTime <= 5000) {
     char key = keypad.getKey();
     if (key) {
+      checkPointTime = millis();
+
       if (key == '*') {
         break;  // clear input
       } else if (isAlpha(key)) {
@@ -118,8 +122,11 @@ int readNumber() {
         lcd.print(key);
       }
     }
+    elapsedTime = millis() - checkPointTime;
   }
-
+  if (elapsedTime >= 5000) {
+    return 19283747;
+  }
   return strNumber.toInt();
 }
 void color(unsigned char red, unsigned char green, unsigned char blue)  // the color generating function
@@ -136,6 +143,8 @@ bool isInTempRange(int number, int *varimp) {
 bool isInLightRange(int number, int *varimp) {
   return ((varimp == &umbralConfig.umbrLuzLow && number < umbralConfig.umbrLuzHigh || varimp == &umbralConfig.umbrLuzHigh && number > umbralConfig.umbrLuzLow) && number <= MAX_LIGTH);
 }
+
+
 void editar_valor(String titulo, int *varimp, bool (*isInRangeFunction)(int, int *)) {
   menu.change_screen(&screen_5);
   lcd.setCursor(0, 0);
@@ -146,14 +155,16 @@ void editar_valor(String titulo, int *varimp, bool (*isInRangeFunction)(int, int
   lcd.print(*varimp);
   lcd.print(" \"*\" to edit");
   char pressedKey;
-  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#' || isAlphaNumeric(pressedKey)) {
+  int checkPointTime = millis();
+  int elapsedTime = millis() - checkPointTime;
+  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#' && (elapsedTime = millis() - checkPointTime) <= 5000 || isAlphaNumeric(pressedKey)) {
   }
-  if (pressedKey == '#') {
+  if (pressedKey == '#' || elapsedTime > 5000) {
     menu.change_screen(lastScreen);
     return;
   }
   int number = readNumber();
-  if (isInRangeFunction(number, varimp)) {
+  if (number != 19283747 && isInRangeFunction(number, varimp)) {
     *varimp = number;
     EEPROM.put(eepromBaseAddres, umbralConfig);
     menu.change_screen(lastScreen);
@@ -163,8 +174,10 @@ void editar_valor(String titulo, int *varimp, bool (*isInRangeFunction)(int, int
   lcd.setCursor(0, 1);
   lcd.print("                ");
   lcd.setCursor(0, 1);
+  checkPointTime = millis();
+  elapsedTime = millis() - checkPointTime;
   lcd.print("Error press \"*\"");
-  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY || pressedKey == '#' || isAlphaNumeric(pressedKey)) {
+  while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && (elapsedTime = millis() - checkPointTime) <= 5000 || pressedKey == '#' || isAlphaNumeric(pressedKey)) {
   }
 
   menu.change_screen(lastScreen);
@@ -221,9 +234,11 @@ void setup() {
     lcd.setCursor(0, 1);
     lcd.print("\"#\" to cancel  ");
     char pressedKey;
-    while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#' || isAlphaNumeric(pressedKey)) {
+    int checkPointTime = millis();
+    int elapsedTime = millis() - checkPointTime;
+    while ((pressedKey = keypad.getKey()) != '*' && pressedKey == NO_KEY && pressedKey != '#' && (elapsedTime = millis() - checkPointTime) <= 5000 || isAlphaNumeric(pressedKey)) {
     }
-    if (pressedKey == '#') {
+    if (pressedKey == '#' || elapsedTime > 5000) {
       menu.change_screen(lastScreen);
       return;
     }
